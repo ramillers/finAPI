@@ -1,5 +1,5 @@
 const express = require('express');
-const { v4: uuidv4 } = require("uuid")
+const { v4: uuidv4 } = require("uuid"); 
 
 const app = express();
 
@@ -7,6 +7,21 @@ app.use(express.json()); //middleware pra receber um json
 
 //fake database 
 const customers = [];
+
+//Middleware
+function verifyExistsAccountCPF(request, response, next) {
+    const { cpf } = request.params; 
+
+    const customer = customers.find(customer => customer.cpf === cpf); 
+
+    if (!customer) {
+        return response.status(400).json({error: "Usuário não encontrado!" })
+    }
+
+    request.customer = customer; //tds middlewares q passarem no verify vão ter acesso ao customar (p saber os dados do cpf) 
+
+    return next(); 
+}
 
 //criação de conta
 app.post("/account", (request, response) => {
@@ -32,15 +47,9 @@ app.post("/account", (request, response) => {
 });
 
 //buscar extrato bancário
-app.get("/statement/:cpf", (request, response) => {
-    const { cpf } = request.params; 
-
-    const customer = customers.find(customer => customer.cpf === cpf); 
-
-    if (!customer) {
-        return response.status(400).json({error: "Usuário não encontrado!" })
-    }
-
+app.get("/statement/:cpf", verifyExistsAccountCPF, (request, response) => {
+    const { customer } = request; 
+    
     return response.json(customer.statement); 
 });
 
