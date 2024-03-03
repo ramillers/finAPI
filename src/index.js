@@ -31,4 +31,17 @@ app.post("/account", (request, response) => {
     return response.status(201).send(); 
 });
 
+//buscar extrato bancário
+app.get("/statement/:cpf", (request, response) => {
+    const { cpf } = request.params; 
+
+    const customer = customers.find(customer => customer.cpf === cpf); 
+
+    if (!customer) {
+        return response.status(400).json({error: "Usuário não encontrado!" })
+    }
+
+    return response.json(customer.statement); 
+});
+
 app.listen(3333);
